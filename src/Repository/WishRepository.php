@@ -39,28 +39,14 @@ class WishRepository extends ServiceEntityRepository
         }
     }
 
-//    /**
-//     * @return Wish[] Returns an array of Wish objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('w')
-//            ->andWhere('w.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('w.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?Wish
-//    {
-//        return $this->createQueryBuilder('w')
-//            ->andWhere('w.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+public function findPublishWishes (){
+        $qb = $this->createQueryBuilder("w");
+        $qb->andWhere("w.isPublished = :isPublish")
+            ->setParameter("isPublish", true)
+            ->addOrderBy("w.dateCreated", "DESC")
+            ->leftJoin("w.category", "cat")
+            ->addSelect("cat");
+        $query = $qb->getQuery();
+        return $query->getResult();
+}
 }
