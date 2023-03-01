@@ -6,6 +6,8 @@ use App\Entity\Wish;
 use App\Form\WishType;
 use App\Repository\CategoryRepository;
 use App\Repository\WishRepository;
+use App\Utils\Censurator;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -40,10 +42,13 @@ class WishController extends AbstractController
     }
 
     #[Route('/add', name: 'add')]
-    public function add( WishRepository $wishRepository, Request $request): Response
+    #[IsGranted("ROLE_USER")]
+    public function add( WishRepository $wishRepository, Request $request, Censurator $censurator): Response
     {
 
         $wish = new Wish();
+
+        $wish->setAuthor($this->getUser()->getUserIdentifier());
 
         //création d'une instance de form lié à une instance de série
         $wishForm = $this->createForm(WishType::class, $wish);
@@ -52,7 +57,8 @@ class WishController extends AbstractController
         $wishForm->handleRequest($request);
 
         if ($wishForm->isSubmitted() && $wishForm->isValid()) {
-
+            $wish->setDescription($censurator->purify($wish->getDescription()));
+            $wish->setTitle($censurator->purify($wish->getTitle()));
             //sauvegarde en BDD
             $wishRepository->save($wish, true);
 
@@ -68,6 +74,26 @@ class WishController extends AbstractController
 
         ]);
 
+    }
+
+    #[Route('/update/{id}', name: 'update', requirements: ['id'=>'\d+'])]
+    public function update( WishRepository $wishRepository, int $id): Response
+    {
+        //récupérer le wish et le renvoyer
+        $wish = $wishRepository->find($id);
+
+        if (!$wish){
+            //lance une erreur 404 si la série n'existe pas
+            throw $this->createNotFoundException("Oops ! Serie not found !");
+        }
+
+
+        $wishForm = $this->createForm(WishType::class, $wish);
+
+        return $this->render('wish/update.html.twig', [
+            'wish'=> $wish,
+            'wishForm'=> $wishForm->createView()
+            ]);
     }
 
 }

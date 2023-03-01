@@ -9,6 +9,7 @@
     <h2>Affiche les détails d'une chose à faire</h2>
 <div class="wish-details">
 <div class="wish-details-infos">
+    <a href="{{ path('wish_update', {'id': wish.id}) }}"><button>Update</button></a>
     <div>Title : {{ wish.title }}</div>
     <div> Description : {{ wish.description }}</div>
     <div> Author : {{ wish.author}}</div>
